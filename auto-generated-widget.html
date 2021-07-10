@@ -1890,13 +1890,15 @@ cpdefine("inline:com-chilipeppr-widget-grbl", ["chilipeppr_ready", "jquerycookie
                         break;
                     case 'hashQuery':
                         if (result[1] == 'PRB') {
+						
                             that.grblConsole("received probe info", result);
                             var bits = result[2].split(':');
                             var probeSuccess = parseInt(bits[1], 10);
                             var coords = bits[0].split(',');
                             var obj = {};
                             ['x','y','z'].forEach(function(value,index){
-                                if(this.controller)
+								//JMC 2021-07-10: this is undefined, but all used parameters seem correct
+                                //if(this.controller)
                                 obj[index] = parseFloat(coords[index]);
                                 if(this.report_mode == 1 && this.controller_units == 'inch'){
                                 } else 
@@ -1909,8 +1911,11 @@ cpdefine("inline:com-chilipeppr-widget-grbl", ["chilipeppr_ready", "jquerycookie
                                     obj[index] = (obj[index] / 25.4);
                                 }
                                 obj[index] = obj[index] - this.offsets[value];
+								obj[value] = obj[index]; // Makes the object use result.x, etc. or result[0]
+								
                             }, that);
                             obj.status = 'probeSuccess';
+							
                             chilipeppr.publish("/com-chilipeppr-interface-cnccontroller/proberesponse", obj);
                         }
                         break;
@@ -2229,6 +2234,7 @@ cpdefine("inline:com-chilipeppr-widget-grbl", ["chilipeppr_ready", "jquerycookie
         //    that.sendCode('?\n'); //request status/coordinates
         //},
         updateMachineCoords: function() {
+            chilipeppr.publish('/com-chilipeppr-interface-cnccontroller/last_machine', this.last_machine);
             $('.stat-mcoords').html("X:" + this.last_machine.x.toFixed(3) + " Y:" + this.last_machine.y.toFixed(3) + " Z:" + this.last_machine.z.toFixed(3));
         },
         publishAxisStatus: function(axes) {
